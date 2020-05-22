@@ -5,6 +5,7 @@ import (
 	"github.com/diamondburned/cchat-tui/tui/log"
 	"github.com/diamondburned/cchat-tui/tui/service/server"
 	"github.com/diamondburned/cchat-tui/tui/ti"
+	"github.com/gdamore/tcell"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
 )
@@ -21,7 +22,16 @@ func NewContainer() *Container {
 	tree.SetGraphics(true)
 	tree.SetPrefixes([]string{"", "", "#", ">", ">", ">"})
 	tree.SetRoot(root)
+	tree.SetBackgroundColor(-1)
 	tree.SetTopLevel(1)
+	tree.SetDoneFunc(func(tcell.Key) {})
+
+	root.AddChild(tview.NewTreeNode("test 1"))
+	root.AddChild(tview.NewTreeNode("test 1"))
+	root.AddChild(tview.NewTreeNode("test 1"))
+	root.AddChild(tview.NewTreeNode("test 1"))
+	root.AddChild(tview.NewTreeNode("test 1"))
+	root.AddChild(tview.NewTreeNode("test 1"))
 
 	return &Container{tree, root}
 }

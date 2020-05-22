@@ -1,6 +1,7 @@
 package mode
 
 import (
+	"github.com/diamondburned/cchat-tui/tui/log"
 	"github.com/diamondburned/cchat-tui/tui/ti"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -9,38 +10,37 @@ import (
 type Mode uint8
 
 const (
-	_ Mode = iota
-	NormalMode
-	InsertMode
-	VisualMode
-	CommandMode
+	Normal Mode = iota
+	Insert
+	Visual
+	Command
 )
 
-func ModeFromEventKey(evk *tcell.EventKey) Mode {
+func ModeFromEventKey(evk *tcell.EventKey) (Mode, bool) {
 	// If modifiers are pressed, then we shouldn't handle it.
 	if evk.Modifiers() != tcell.ModNone {
-		return 0
+		return 0, false
 	}
 
 	switch evk.Key() {
 	case tcell.KeyESC:
-		return NormalMode
+		return Normal, true
 	case tcell.KeyRune:
-		break
+		// no-op
 	default:
-		return 0
+		return 0, false
 	}
 
 	switch evk.Rune() {
 	case 'i':
-		return InsertMode
+		return Insert, true
 	case 'v':
-		return VisualMode
+		return Visual, true
 	case ';':
-		return CommandMode
+		return Command, true
 	}
 
-	return 0
+	return 0, false
 }
 
 func (m Mode) Valid() bool {
@@ -49,13 +49,13 @@ func (m Mode) Valid() bool {
 
 func (m Mode) String() string {
 	switch m {
-	case NormalMode:
+	case Normal:
 		return "Normal"
-	case InsertMode:
+	case Insert:
 		return "Insert"
-	case VisualMode:
+	case Visual:
 		return "Visual"
-	case CommandMode:
+	case Command:
 		return "Command"
 	}
 	return ""
@@ -63,14 +63,14 @@ func (m Mode) String() string {
 
 func (m Mode) DisplayString() string {
 	switch m {
-	case NormalMode:
-		return "-- NORMAL --"
-	case InsertMode:
-		return "-- INSERT --"
-	case VisualMode:
-		return "-- VISUAL --"
-	case CommandMode:
-		return ":"
+	case Normal:
+		return "-- NORMAL -- "
+	case Insert:
+		return "-- INSERT -- "
+	case Visual:
+		return "-- VISUAL -- "
+	case Command:
+		return ";"
 	}
 	return ""
 }
@@ -85,7 +85,7 @@ type State struct {
 }
 
 func NewState() *State {
-	return &State{Mode: NormalMode}
+	return &State{Mode: Normal}
 }
 
 // OnChange appends a mode handler. This function is not thread-safe. Calls on
@@ -95,12 +95,30 @@ func (state *State) OnChange(fn func(Mode)) {
 	fn(state.Mode)
 }
 
-func (state *State) InputHandler() ti.InputHandlerFunc {
-	return func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-		if mode := ModeFromEventKey(event); mode > 0 {
-			state.changeMode(mode)
+// BindApplication binds to the application a mode shortcut handler.
+func (state *State) BindApplication(app *tview.Application) {
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// Run this first since I don't trust type assertions to be fast.
+		mo, ok := ModeFromEventKey(event)
+		if !ok {
+			return event
 		}
-	}
+
+		// If we're focused on an input handler, then we shouldn't handle
+		// anything but an Escape.
+		if _, ok := app.GetFocus().(*tview.InputField); ok {
+			if event.Key() != tcell.KeyESC {
+				return event
+			}
+		}
+
+		if mo == state.Mode {
+			return event
+		}
+
+		state.changeMode(mo)
+		return nil
+	})
 }
 
 func (state *State) changeMode(mode Mode) {
@@ -110,22 +128,28 @@ func (state *State) changeMode(mode Mode) {
 	}
 }
 
-type Indicator tview.TextView
+type Indicator struct {
+	*tview.TextView
+	state *State
+}
 
 func NewIndicator(s *State, d ti.Drawer) *Indicator {
 	tv := tview.NewTextView()
 	tv.SetDynamicColors(false)
 	tv.SetScrollable(false)
 	tv.SetRegions(false)
-	tv.SetTextColor(-1)
 	tv.SetBackgroundColor(-1)
 	tv.SetWrap(false)
 	tv.SetToggleHighlights(false)
 
 	s.OnChange(func(mode Mode) {
+		log.Write("Indicator changing")
 		tv.SetText(mode.DisplayString())
-		d.ForceDraw()
 	})
 
-	return (*Indicator)(tv)
+	return &Indicator{tv, s}
+}
+
+func (i *Indicator) Width() int {
+	return i.state.Mode.DisplayWidth()
 }

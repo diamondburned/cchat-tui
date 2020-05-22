@@ -28,12 +28,12 @@ type LogEntry struct {
 
 func NewLogToWriter(w io.Writer) func(LogEntry) {
 	return func(entry LogEntry) {
-		w.Write([]byte(entry.Time.String() + ": " + entry.Msg))
+		w.Write([]byte(entry.Time.String() + ": " + entry.Msg + "\n"))
 	}
 }
 
 func NewLogToFile(file string) (func(LogEntry), error) {
-	f, err := os.OpenFile(file, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0750)
+	f, err := os.OpenFile(file, os.O_CREATE|os.O_WRONLY|os.O_APPEND|os.O_SYNC, 0750)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to open/create file")
 	}
@@ -102,7 +102,8 @@ func NewOneLiner(d ti.Drawer) (l *OneLiner) {
 func (l *OneLiner) OnEntry(entry LogEntry) {
 	msg := strings.Replace(entry.Msg, "\n", "↵", -1)
 
-	l.drawer.QueueUpdateDraw(func() {
+	// Prevent deadlocks.
+	go l.drawer.QueueUpdateDraw(func() {
 		var color = tcell.Color(-1)
 		if strings.HasPrefix(msg, "Error:") {
 			color = tcell.ColorRed
