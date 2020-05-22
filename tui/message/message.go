@@ -32,18 +32,16 @@ func NewMessageView() *MessageView {
 }
 
 type Container struct {
-	*tview.Box
+	*tview.Flex
 	Messages []Message
 }
 
 func NewContainer() *Container {
-	// flex := tview.NewFlex()
-	// flex.SetBackgroundColor(-1)
-	// flex.SetDirection(tview.FlexRow)
+	flex := tview.NewFlex()
+	flex.SetBackgroundColor(-1)
+	flex.SetDirection(tview.FlexRow)
 
-	// return &Container{Flex: flex}
-
-	return &Container{Box: tview.NewBox()}
+	return &Container{Flex: flex}
 }
 
 type Message struct {

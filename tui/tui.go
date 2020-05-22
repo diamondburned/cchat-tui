@@ -31,7 +31,7 @@ func NewApplication() *Application {
 
 	return &Application{
 		app,
-		NewWindow(modestate, app),
+		win,
 		modestate,
 	}
 }
@@ -72,26 +72,25 @@ func NewWindow(modestate *mode.State, app *tview.Application) *Window {
 
 	// Make the top container
 	win.Top.Grid = tview.NewGrid()
+	win.Top.Grid.SetBorders(false)
 	win.Top.Grid.SetBackgroundColor(-1)
 
 	win.Top.Services = service.NewContainer()
 	win.Top.Messages = message.NewMessageView()
 
-	// Set the minimum widths. 25px for each column.
-	win.Top.SetMinSize(0, 25)
 	// Set the proper column sizes.
 	// - 25px for the left column on medium layout.
 	// - 35px for the left column on large layout.
 	// - The rest is for messages
-	win.Top.SetColumns(25, 35, 0)
+	win.Top.SetColumns(25, 35, -1)
 
 	// Smallest layout.
 	win.Top.AddItem(win.Top.Services, 0, 0, 0, 0, 0, 0, true)
-	win.Top.AddItem(win.Top.Messages, 0, 0, 1, 1, 0, 0, true)
+	win.Top.AddItem(win.Top.Messages, 0, 0, 1, 3, 0, 0, true)
 
 	// Medium layout, columns > 70.
 	win.Top.AddItem(win.Top.Services, 0, 0, 1, 1, 0, 70, true)
-	win.Top.AddItem(win.Top.Messages, 0, 1, 1, 1, 0, 70, true)
+	win.Top.AddItem(win.Top.Messages, 0, 1, 1, 2, 0, 70, true)
 
 	// Large layout, columns > 150.
 	win.Top.AddItem(win.Top.Services, 0, 1, 1, 1, 0, 150, true)
@@ -109,9 +108,9 @@ func NewWindow(modestate *mode.State, app *tview.Application) *Window {
 			app.SetFocus(win.Top.Messages.Input)
 		case mode.Visual:
 			app.SetFocus(win.Top.Messages.Container)
+		case mode.Command:
+			app.SetFocus(win.StatusLine)
 		}
-
-		// TODO: command mode
 	})
 
 	return win

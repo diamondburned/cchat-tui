@@ -24,14 +24,8 @@ func NewContainer() *Container {
 	tree.SetRoot(root)
 	tree.SetBackgroundColor(-1)
 	tree.SetTopLevel(1)
-	tree.SetDoneFunc(func(tcell.Key) {})
-
-	root.AddChild(tview.NewTreeNode("test 1"))
-	root.AddChild(tview.NewTreeNode("test 1"))
-	root.AddChild(tview.NewTreeNode("test 1"))
-	root.AddChild(tview.NewTreeNode("test 1"))
-	root.AddChild(tview.NewTreeNode("test 1"))
-	root.AddChild(tview.NewTreeNode("test 1"))
+	tree.SetDoneFunc(func(tcell.Key) {
+	})
 
 	return &Container{tree, root}
 }
