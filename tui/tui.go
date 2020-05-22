@@ -76,7 +76,7 @@ func NewWindow(modestate *mode.State, app *tview.Application) *Window {
 	win.Top.Grid.SetBackgroundColor(-1)
 
 	win.Top.Services = service.NewContainer()
-	win.Top.Messages = message.NewMessageView()
+	win.Top.Messages = message.NewMessageView(app)
 
 	// Set the proper column sizes.
 	// - 25px for the left column on medium layout.
