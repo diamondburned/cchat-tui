@@ -1,4 +1,6 @@
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
+github.com/Pallinder/go-randomdata v1.2.0 h1:DZ41wBchNRb/0GfsePLiSwb0PHZmT67XY00lCDlaYPg=
+github.com/Pallinder/go-randomdata v1.2.0/go.mod h1:yHmJgulpD2Nfrm0cR9tI/+oAgRqCQQixsA8HyRZfV9Y=
 github.com/Xuanwo/go-locale v0.2.0 h1:1N8SGG2VNpLl6VVa8ueZm3Nm+dxvk8ffY9aviKHl4IE=
 github.com/Xuanwo/go-locale v0.2.0/go.mod h1:6qbT9M726OJgyiGZro2YwPmx63wQzlH+VvtjJWQoftw=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
@@ -7,6 +9,17 @@ github.com/diamondburned/cchat v0.0.4 h1:RSuAX3T4PsPOPBDNZMTt6Mr+g1UZQ3A7vSBf9QP
 github.com/diamondburned/cchat v0.0.4/go.mod h1:2MdhWABRer4WhwcuLR0b2VY5S22Y1zDTpFqriAFrC08=
 github.com/diamondburned/cchat v0.0.5 h1:g0+569jnFqx4euNsqjurqjAY+xxG5n8kmGnDRwA8qFs=
 github.com/diamondburned/cchat v0.0.5/go.mod h1:2MdhWABRer4WhwcuLR0b2VY5S22Y1zDTpFqriAFrC08=
+github.com/diamondburned/cchat v0.0.6/go.mod h1:+zXktogE45A0om4fT6B/z6Ii7FXNafjxsNspI0rlhbU=
+github.com/diamondburned/cchat v0.0.7 h1:y5zbEoD6L8YHuN/yclqjokF0lPkRj5tYWOuJe0bBldI=
+github.com/diamondburned/cchat v0.0.7/go.mod h1:+zXktogE45A0om4fT6B/z6Ii7FXNafjxsNspI0rlhbU=
+github.com/diamondburned/cchat v0.0.8 h1:/PmI23SFHJcjYBWNBwQbp36n7fDvDu+NMnQuhM5FM2E=
+github.com/diamondburned/cchat v0.0.8/go.mod h1:+zXktogE45A0om4fT6B/z6Ii7FXNafjxsNspI0rlhbU=
+github.com/diamondburned/cchat-mock v0.0.0-20200522234508-ce2ecc80c2cf h1:xqQpI0WQP06xh3ek8CNbrN4VAZXsGWnyk5REMJDaj1g=
+github.com/diamondburned/cchat-mock v0.0.0-20200522234508-ce2ecc80c2cf/go.mod h1:xpKGv+WDh/iU4GfM53uACmii4Z4ZAVwBDXDSbQVTxlA=
+github.com/diamondburned/cchat-mock v0.0.0-20200523021619-ddd646da32c3 h1:fs4uQrETlE/ijjoFw0I19CKdFO1vaDKDLdUdnU63U48=
+github.com/diamondburned/cchat-mock v0.0.0-20200523021619-ddd646da32c3/go.mod h1:HR1oRWdWL0iS9ZfmqOGXj1VGJK6vMtvyYQP5bwFlh4o=
+github.com/diamondburned/cchat-mock v0.0.0-20200523024450-45333c71c2dc h1:sMkiLxDwg/TvpUMb5Nhfqq1HpOoVZ601qXRXQiOShsc=
+github.com/diamondburned/cchat-mock v0.0.0-20200523024450-45333c71c2dc/go.mod h1:Q80pNjb7VAXBAMeUfHnhqQ+k3/X42JgHsKgS2OekJ80=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
 github.com/gdamore/tcell v1.3.0 h1:r35w0JBADPZCVQijYebl6YMWWtHRqVEGt7kL2eBADRM=

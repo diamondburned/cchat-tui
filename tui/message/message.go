@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/diamondburned/cchat"
+	"github.com/diamondburned/cchat-tui/tui/app"
 	"github.com/diamondburned/cchat-tui/tui/humanize"
 	"github.com/diamondburned/cchat-tui/tui/log"
-	"github.com/diamondburned/cchat-tui/tui/ti"
 	"github.com/diamondburned/cchat/text"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
@@ -20,14 +20,15 @@ type MessageView struct {
 	Input     *tview.InputField
 
 	current cchat.ServerMessage
+	sender  cchat.ServerMessageSender
 }
 
-func NewMessageView(d ti.Drawer) *MessageView {
+func NewMessageView() *MessageView {
 	flex := tview.NewFlex()
 	flex.SetBackgroundColor(-1)
 	flex.SetDirection(tview.FlexRow)
 
-	container := NewContainer(d)
+	container := NewContainer()
 	input := tview.NewInputField()
 	input.SetFieldBackgroundColor(-1)
 	input.SetPlaceholder("Message...")
@@ -50,16 +51,42 @@ func (v *MessageView) JoinServer(server cchat.ServerMessage) {
 		}
 	}
 
+	var name string
+	if s, ok := server.(cchat.Server); ok {
+		name, _ = s.Name()
+	}
+
 	v.current = server
+
+	if s, ok := server.(cchat.ServerMessageSender); ok {
+		v.sender = s
+		// Only allow inputs if the server allows sending.
+		v.Input.SetAcceptanceFunc(acceptAll)
+		v.Input.SetPlaceholder("Message #" + name)
+	} else {
+		v.sender = nil
+		v.Input.SetAcceptanceFunc(acceptNone)
+		v.Input.SetPlaceholder("You cannot send messages here.")
+	}
 
 	if err := v.current.JoinServer(v.Container); err != nil {
 		log.Error(errors.Wrap(err, "Failed to join server"))
 	}
 }
 
+// SendMessage is not thread-safe.
 func (v *MessageView) SendMessage() {
-	var server = v.current
+	if v.sender == nil {
+		return
+	}
+
+	var server = v.sender
+
 	var send = SendMessage(v.Input.GetText())
+	if send == "" {
+		return
+	}
+
 	v.Input.SetText("")
 
 	go func() {
@@ -73,16 +100,22 @@ type SendMessage string
 
 func (s SendMessage) Content() string { return string(s) }
 
+func acceptNone(textToCheck string, lastChar rune) bool {
+	return false
+}
+func acceptAll(textToCheck string, lastChar rune) bool {
+	return true
+}
+
 type Container struct {
 	*tview.TextView
 	Messages []Message
 
-	drawer    ti.Drawer
 	focused   int
 	renderBuf bytes.Buffer
 }
 
-func NewContainer(d ti.Drawer) *Container {
+func NewContainer() *Container {
 	text := tview.NewTextView()
 	text.SetBackgroundColor(-1)
 	text.SetToggleHighlights(true)
@@ -90,7 +123,7 @@ func NewContainer(d ti.Drawer) *Container {
 	text.SetDynamicColors(true)
 	text.SetScrollable(true)
 
-	return &Container{TextView: text, drawer: d, focused: -1}
+	return &Container{TextView: text, focused: -1}
 }
 
 // FocusMessage is not thread-safe.
@@ -142,7 +175,7 @@ func (c *Container) Reset() {
 // CreateMessage is thread-safe.
 func (c *Container) CreateMessage(msg cchat.MessageCreate) {
 	var msgc = NewMessage(msg)
-	c.drawer.QueueUpdateDraw(func() {
+	app.QueueUpdateDraw(func() {
 		c.Messages = append(c.Messages, msgc)
 		// lazy render
 		c.TextView.Write([]byte(msgc.Render() + "\n"))
@@ -151,7 +184,7 @@ func (c *Container) CreateMessage(msg cchat.MessageCreate) {
 
 // UpdateMessage is thread-safe.
 func (c *Container) UpdateMessage(msg cchat.MessageUpdate) {
-	c.drawer.QueueUpdateDraw(func() {
+	app.QueueUpdateDraw(func() {
 		// Find the message.
 		i := c.findByID(msg.ID())
 		if i < 0 {
@@ -174,7 +207,7 @@ func (c *Container) UpdateMessage(msg cchat.MessageUpdate) {
 
 // DeleteMessage is thread-safe.
 func (c *Container) DeleteMessage(msg cchat.MessageDelete) {
-	c.drawer.QueueUpdateDraw(func() {
+	app.QueueUpdateDraw(func() {
 		i := c.findByID(msg.ID())
 		if i < 0 {
 			return

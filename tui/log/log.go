@@ -1,13 +1,14 @@
 package log
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/diamondburned/cchat-tui/tui/ti"
+	"github.com/diamondburned/cchat-tui/tui/app"
 	"github.com/gdamore/tcell"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
@@ -19,6 +20,7 @@ type logBuffer struct {
 	mutex   sync.Mutex
 	entries []LogEntry
 	onEntry []func(LogEntry)
+	stderr  bool
 }
 
 type LogEntry struct {
@@ -26,9 +28,13 @@ type LogEntry struct {
 	Msg  string
 }
 
+func (entry LogEntry) String() string {
+	return entry.Time.Format(time.Stamp) + ": " + entry.Msg
+}
+
 func NewLogToWriter(w io.Writer) func(LogEntry) {
 	return func(entry LogEntry) {
-		w.Write([]byte(entry.Time.String() + ": " + entry.Msg + "\n"))
+		w.Write([]byte(entry.String() + "\n"))
 	}
 }
 
@@ -41,7 +47,7 @@ func NewLogToFile(file string) (func(LogEntry), error) {
 }
 
 func newLogBuffer() *logBuffer {
-	return &logBuffer{}
+	return &logBuffer{stderr: true}
 }
 
 func Error(err error) {
@@ -49,11 +55,17 @@ func Error(err error) {
 		Write("Error: " + err.Error())
 	}
 }
+
 func Write(msg string) {
 	LogBuffer.Write(msg)
 }
+
 func OnEntry(fn func(LogEntry)) {
 	LogBuffer.OnEntry(fn)
+}
+
+func SetStderr(stderr bool) {
+	LogBuffer.SetStderr(stderr)
 }
 
 func (l *logBuffer) Write(msg string) {
@@ -65,35 +77,40 @@ func (l *logBuffer) Write(msg string) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
+	if l.stderr {
+		fmt.Fprintln(os.Stderr, entry.String())
+	}
+
 	l.entries = append(l.entries, entry)
-	l.callEntry(entry)
-}
 
-func (l *logBuffer) OnEntry(fn func(LogEntry)) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-
-	l.onEntry = append(l.onEntry, fn)
-}
-
-func (l *logBuffer) callEntry(entry LogEntry) {
 	for _, fn := range l.onEntry {
 		fn(entry)
 	}
 }
 
-type OneLiner struct {
-	*tview.TextView
-	drawer ti.Drawer
+func (l *logBuffer) SetStderr(stderr bool) {
+	l.mutex.Lock()
+	l.stderr = stderr
+	l.mutex.Unlock()
 }
 
-func NewOneLiner(d ti.Drawer) (l *OneLiner) {
+func (l *logBuffer) OnEntry(fn func(LogEntry)) {
+	l.mutex.Lock()
+	l.onEntry = append(l.onEntry, fn)
+	l.mutex.Unlock()
+}
+
+type OneLiner struct {
+	*tview.TextView
+}
+
+func NewOneLiner() (l *OneLiner) {
 	tv := tview.NewTextView()
 	tv.SetWrap(false)
 	tv.SetBackgroundColor(-1)
 	tv.SetDynamicColors(false)
 
-	l = &OneLiner{tv, d}
+	l = &OneLiner{tv}
 	OnEntry(l.OnEntry)
 	return
 }
@@ -103,11 +120,14 @@ func (l *OneLiner) OnEntry(entry LogEntry) {
 	msg := strings.Replace(entry.Msg, "\n", "↵", -1)
 
 	// Prevent deadlocks.
-	go l.drawer.QueueUpdateDraw(func() {
+	go app.QueueUpdateDraw(func() {
 		var color = tcell.Color(-1)
 		if strings.HasPrefix(msg, "Error:") {
 			color = tcell.ColorRed
 		}
+
+		parts := strings.Split(msg, ": ")
+		msg = parts[len(parts)-1]
 
 		l.SetTextColor(color)
 		l.SetText(msg)

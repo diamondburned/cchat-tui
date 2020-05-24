@@ -3,7 +3,6 @@ package statusline
 import (
 	"github.com/diamondburned/cchat-tui/tui/log"
 	"github.com/diamondburned/cchat-tui/tui/statusline/mode"
-	"github.com/diamondburned/cchat-tui/tui/ti"
 	"github.com/rivo/tview"
 )
 
@@ -16,11 +15,11 @@ type Container struct {
 	Log *log.OneLiner
 }
 
-func NewContainer(modestate *mode.State, d ti.Drawer) *Container {
-	indicator := mode.NewIndicator(modestate, d)
+func NewContainer(modestate *mode.State) *Container {
+	indicator := mode.NewIndicator(modestate)
 
 	// Logger line that shares a global buffer.
-	log := log.NewOneLiner(d)
+	log := log.NewOneLiner()
 	// Command input, hidden by default.
 	cmd := tview.NewInputField()
 	cmd.SetFieldBackgroundColor(-1)

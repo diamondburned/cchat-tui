@@ -4,7 +4,8 @@ go 1.14
 
 require (
 	github.com/Xuanwo/go-locale v0.2.0
-	github.com/diamondburned/cchat v0.0.5
+	github.com/diamondburned/cchat v0.0.8
+	github.com/diamondburned/cchat-mock v0.0.0-20200523024450-45333c71c2dc
 	github.com/gdamore/tcell v1.3.0
 	github.com/goodsign/monday v1.0.0
 	github.com/mattn/go-runewidth v0.0.9 // indirect

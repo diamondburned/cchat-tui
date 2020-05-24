@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/diamondburned/cchat"
+	"github.com/diamondburned/cchat-tui/tui/app"
 	"github.com/diamondburned/cchat-tui/tui/log"
-	"github.com/diamondburned/cchat-tui/tui/ti"
 	"github.com/pkg/errors"
 	"github.com/rivo/tview"
 )
@@ -11,8 +11,6 @@ import (
 type Node struct {
 	*tview.TreeNode // use GetReference
 	cchat.Server
-
-	drawer ti.Drawer
 }
 
 func FromTreeNode(node *tview.TreeNode) *Node {
@@ -21,7 +19,7 @@ func FromTreeNode(node *tview.TreeNode) *Node {
 	return svnode
 }
 
-func NewNode(server cchat.Server, d ti.Drawer) *Node {
+func NewNode(server cchat.Server) *Node {
 	name, err := server.Name()
 	if err != nil {
 		log.Error(errors.Wrap(err, "Failed to make a server node"))
@@ -34,7 +32,6 @@ func NewNode(server cchat.Server, d ti.Drawer) *Node {
 	var node = &Node{
 		TreeNode: tview.NewTreeNode(name),
 		Server:   server,
-		drawer:   d,
 	}
 	node.TreeNode.SetReference(node)
 
@@ -53,10 +50,10 @@ func (node *Node) SetServers(servers []cchat.Server) {
 	for i, server := range servers {
 		// We can reference TreeNode right away here, as we've already set a
 		// reference in the NewNode constructor.
-		children[i] = NewNode(server, node.drawer).TreeNode
+		children[i] = NewNode(server).TreeNode
 	}
 
-	node.drawer.QueueUpdateDraw(func() {
+	app.QueueUpdateDraw(func() {
 		node.TreeNode.SetChildren(children)
 	})
 }

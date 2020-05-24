@@ -1,8 +1,8 @@
 package mode
 
 import (
+	"github.com/diamondburned/cchat-tui/tui/app"
 	"github.com/diamondburned/cchat-tui/tui/log"
-	"github.com/diamondburned/cchat-tui/tui/ti"
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
@@ -96,29 +96,27 @@ func (state *State) OnChange(fn func(Mode)) {
 }
 
 // BindApplication binds to the application a mode shortcut handler.
-func (state *State) BindApplication(app *tview.Application) {
-	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// Run this first since I don't trust type assertions to be fast.
-		mo, ok := ModeFromEventKey(event)
-		if !ok {
+func (state *State) InputCapturer(event *tcell.EventKey) *tcell.EventKey {
+	// Run this first since I don't trust type assertions to be fast.
+	mo, ok := ModeFromEventKey(event)
+	if !ok {
+		return event
+	}
+
+	// If we're focused on an input handler, then we shouldn't handle
+	// anything but an Escape.
+	if _, ok := app.GetFocus().(*tview.InputField); ok {
+		if event.Key() != tcell.KeyESC {
 			return event
 		}
+	}
 
-		// If we're focused on an input handler, then we shouldn't handle
-		// anything but an Escape.
-		if _, ok := app.GetFocus().(*tview.InputField); ok {
-			if event.Key() != tcell.KeyESC {
-				return event
-			}
-		}
+	if mo == state.Mode {
+		return event
+	}
 
-		if mo == state.Mode {
-			return event
-		}
-
-		state.changeMode(mo)
-		return nil
-	})
+	state.changeMode(mo)
+	return nil
 }
 
 func (state *State) changeMode(mode Mode) {
@@ -133,7 +131,7 @@ type Indicator struct {
 	state *State
 }
 
-func NewIndicator(s *State, d ti.Drawer) *Indicator {
+func NewIndicator(s *State) *Indicator {
 	tv := tview.NewTextView()
 	tv.SetDynamicColors(false)
 	tv.SetScrollable(false)
